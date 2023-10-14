@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .tab-group {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 33px;
+            -webkit-app-region: drag;
+            z-index: 999;
+        }
+        .nav-link {
+            -webkit-app-region: no-drag;
+            height: 33px;
+        }
+        .tab-content {
+            position: absolute;
+            top: 33px;
+            height: calc(100vh - 66px);
+            width: 100vw;
+        }
+        webview {
+            position: absolute;
+            width: 100vw;
+            height: calc(100vh - 66px);
+        }
+        input, button {
+            height: 30px;
+            border: none!important;
+            background: none;
+        }
+        .input-group {
+            width: 100vw;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+        }
+        .nav-link button {
+            color: red;
+            height: 0px;
+            width: 0px;
+            font-size: 14px;
+            padding-left: 12px;
+            cursor: pointer;
+        }
+        .appCloseBtn {
+            -webkit-app-region: no-drag;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            z-index: 999;
+            height: 32px;
+            width: 32px;
+        }
+        .appCloseBtn:hover {
+            background: red;
+        }
+        input:focus, button:focus {
+            outline: none!important;
+            box-shadow: none!important;
+        }
+        #dotMenuDiv {
+            position: fixed;
+            top: 70px;
+            right: 3px;
+            border: 1px solid #333;
+        }
+        .dropdown-item {
+            font-size: 12px;
+        }
+        a {
+            cursor: pointer;
+        }
+    </style>
+    <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <ul class="nav nav-tabs tab-group">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#tabView1" id="tab1" onclick="showTab('tabView1','tab1')"><span id="title1">New Tab</span> <button class="close-tab" onclick="closeTab(1)">✖</button></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" style="font-size: 15px;" id="newTab" onclick="addTab()">+</a>
+        </li>
+    </ul>
+    <button class="appCloseBtn" onmousedown="window.top.close()">✖</button>
+    <div class="tab-content">
+        <div id="tabView1" class="tab-pane active">
+            <div class="input-group">
+                <button class="form-control" style="max-width: 30px;" onclick="goBackInTab('1')"><i class="bi bi-arrow-left"></i></button>
+                <button class="form-control" style="max-width: 30px;" onclick="goForwardInTab('1')"><i class="bi bi-arrow-right"></i></button>
+                <button class="form-control" style="max-width: 30px;" onclick="reloadTab('1')"><i class="bi bi-arrow-clockwise"></i></button>
+                <input type="text" class="form-control" id="urlInput" placeholder="Enter URL">
+                <div class = "dropdown">
+                    <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html')">New Tab</a>
+                        <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html')">Settings</a>
+                        <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
+                        <a class="dropdown-item" onclick="openDevTools(1)">Developer Tools</a>
+                        <a class="dropdown-item" onclick="window.top.close()">Exit</a>
+                    </div>
+                </div>
+            </div>
+            <webview id="webview1" src="3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html" webpreferences="nativeWindowOpen=true" allowpopups></webview>
+        </div>
+    </div>
+
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+          window.api.handle(
+            "open-url",
+            (event, data) =>
+            function (event, data) {
+                addTab(data);
+            },
+            event
+        );
+        // JavaScript to set the default URL for the webview
+        const webview = document.getElementById('webview1');
+        webview.addEventListener('did-finish-load', (event) => {
+            title = webview.getTitle();
+            url = webview.getURL();
+            if (title.length > 15) {
+                title = title.substring(0, 15) + "..."
+            }
+            document.getElementById("title1").textContent = title;
+            if (!url.replace(/\s/g, '').includes('3f134660c47e4214ab455070033efee3')) {
+                document.getElementById("urlInput").value = url;
+            } else if (url.endsWith("/3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html")) {
+                document.getElementById(`urlInput`).value = "settings://"
+            } else if (url.includes('3f134660c47e4214ab455070033efee3-lionBrWebView.html')) {
+                webview.src="3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html"
+            } else {
+                document.getElementById("urlInput").value = "";
+            }
+        });
+
+        function isDomainOrLocalURL(url) {
+            const domainPattern = /^([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}$/i;
+            return domainPattern.test(url);
+        }
+
+        // JavaScript to handle URL navigation
+        const urlInput = document.getElementById('urlInput');
+
+        // Add an event listener for the Enter key
+        urlInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                const enteredURL = urlInput.value;
+                const domainPattern = /^(http(s)?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
+
+                if (enteredURL.startsWith('settings://')) {
+                    webview.src = '3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html';
+                } else if (url.includes('3f134660c47e4214ab455070033efee3-lionBrWebView.html')) {
+                    webview.src = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html';
+                } else if (domainPattern.test(enteredURL)) {
+                    // Check if the URL starts with 'http://' or 'https://'
+                    if (!enteredURL.match(/^(http|https):\/\//i)) {
+                        // If not, add 'https://'
+                        enteredURL = 'https://' + enteredURL;
+                    }
+                    webview.src = enteredURL;
+                } else {
+                    webview.src = 'https://duckduckgo.com/?q=' + encodeURIComponent(enteredURL);
+                }
+            }
+        });
+        
+
+        const newTabButton = document.getElementById('newTab');
+        let tabCount = 1;
+
+        function addTab(urlToOpen) {
+            if (true) {
+                tabCount++;
+                const newTabContent = document.createElement('div');
+                newTabContent.id = `tabView${tabCount}`;
+                newTabContent.classList.add('tab-pane');
+                newTabContent.innerHTML = `
+                    <div class="input-group">
+                        <button class="form-control" style="max-width: 30px;" onclick="goBackInTab('${tabCount}')"><i class="bi bi-arrow-left"></i></button>
+                        <button class="form-control" style="max-width: 30px;" onclick="goForwardInTab('${tabCount}')"><i class="bi bi-arrow-right"></i></button>
+                        <button class="form-control" style="max-width: 30px;" onclick="reloadTab('${tabCount}')"><i class="bi bi-arrow-clockwise"></i></button>
+                        <input type="text" class="form-control" id="urlInput${tabCount}" placeholder="Enter URL">
+                        <div class = "dropdown">
+                            <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html')">New Tab</a>
+                                <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html')">Settings</a>
+                                <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
+                                <a class="dropdown-item" onclick="openDevTools(${tabCount})">Developer Tools</a>
+                                <a class="dropdown-item" onclick="window.top.close()">Exit</a>
+                            </div>
+                        </div>
+                    </div>
+                    <webview id="webview${tabCount}" src="${urlToOpen || '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html'}"  webpreferences="nativeWindowOpen=true" allowpopups></webview>
+                `;
+
+                const newNavLinkSurrounder = document.createElement('li');
+                newNavLinkSurrounder.classList.add('nav-item');
+                newNavLinkSurrounder.innerHTML = `
+                    <a class="nav-link" data-toggle="tab" href="#tabView${tabCount}" id="tab${tabCount}" onclick="showTab('tabView${tabCount}','tab${tabCount}')"><span id="title${tabCount}">New Tab</span> <button class="close-tab" onclick="closeTab(${tabCount})">✖</button></a>
+                `;
+
+                // Find the parent of the "+" button and insert the new navigation link before it
+                const tabGroup = document.querySelector('.tab-group');
+                tabGroup.insertBefore(newNavLinkSurrounder, newTabButton.parentNode);
+
+                document.querySelector('.tab-content').appendChild(newTabContent);
+
+                // Add event listeners for the new tab's navigation input
+                const newUrlInput = document.getElementById(`urlInput${tabCount}`);
+                const newWebview = document.getElementById(`webview${tabCount}`);
+                const tabNum = tabCount;
+                newWebview.addEventListener('did-finish-load', (event) => {
+                    title = newWebview.getTitle();
+                    url =  newWebview.getURL()
+                    if (title.length > 15) {
+                        title = title.substring(0, 15) + "..."
+                    }
+                    document.getElementById(`title${tabNum}`).textContent = title;
+                    if (!url.replace(/\s/g, '').includes('3f134660c47e4214ab455070033efee3')) {
+                        document.getElementById(`urlInput${tabNum}`).value = url;
+                    } else if (url.replace(' ','').endsWith("/3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html")) {
+                        document.getElementById(`urlInput${tabNum}`).value = "settings://"
+                    } else {
+                        document.getElementById(`urlInput${tabNum}`).value = "";
+                    }
+                });
+                newUrlInput.addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        const enteredURL = newUrlInput.value;
+                        const domainPattern = /^(http(s)?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
+                        if (enteredURL.startsWith('settings://')) {
+                            newWebview.src = '3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html';
+                        } else if (url.includes('3f134660c47e4214ab455070033efee3-lionBrWebView.html')) {
+                            newWebview.src = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html';
+                        } else if (domainPattern.test(enteredURL)) {
+                            // Check if the URL starts with 'http://' or 'https://'
+                            if (!enteredURL.match(/^(http|https):\/\//i)) {
+                                // If not, add 'https://'
+                                enteredURL = 'https://' + enteredURL;
+                            }
+                            newWebview.src = enteredURL;
+                        } else {
+                            newWebview.src = 'https://duckduckgo.com/?q=' + encodeURIComponent(enteredURL);
+                        }
+                    }
+                });
+                showTab(`tabView${tabCount}`, `tab${tabCount}`);
+            }
+        }
+
+
+        // JavaScript to close a tab
+        function closeTab(tabNum) {
+            const tabContent = document.getElementById(`tabView${tabNum}`);
+            const tabNavLink = document.getElementById(`tab${tabNum}`);
+
+            tabContent.remove();
+            tabNavLink.remove();
+            if (tabCount > 1) {
+                tabCount--;
+                // Show the last tab when closing the current tab
+                showTab(`tabView${tabCount}`, `tab${tabCount}`);
+            }
+        }
+
+        // Function to show a specific tab
+        function showTab(tabId, tabId2) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-pane').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show the selected tab
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById(tabId2).classList.add('active');
+        }
+
+        function openDevTools(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            const allWebViews = document.getElementsByTagName('webview');
+            for (const webview of allWebViews) {
+                if (webview.isDevToolsOpened()) {
+                    webview.closeDevTools();
+                }
+            }
+            webview.openDevTools({title: 'LionBr Browser'});
+        }
+
+        // Initialize tab switching for the first tab
+        showTab('tabView1', 'tab1');
+        function goBackInTab(tabNum) {
+            console.log(tabNum);
+            const webview = document.getElementById(`webview${tabNum}`);
+            if (webview.canGoBack()) {
+                webview.goBack();
+            }
+        }
+
+        function goForwardInTab(tabNum) {
+            console.log(tabNum);
+            const webview = document.getElementById(`webview${tabNum}`);
+            if (webview.canGoForward()) {
+                webview.goForward();
+            }
+        }
+
+        function reloadTab(tabNum) {
+            console.log(tabNum);
+            const webview = document.getElementById(`webview${tabNum}`);
+            webview.reload();
+        }
+        function goHome(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            webview.src='3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html';
+        }
+    </script>
+</body>
+</html>
