@@ -38,7 +38,7 @@ app.on("ready", () => {
             nodeIntegration: true,
             enableRemoteModule: true,
             preload: path.join(__dirname, './3f134660c47e4214ab455070033efee3-additional.js'),
-            //devTools: false,
+            devTools: false,
         },
         titleBarStyle: "hidden",
         titleBarOverlay: false,
