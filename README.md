@@ -7,6 +7,8 @@ LionBr is an open-source web browser that offers speed and versatility, outperfo
 - **High Speed**: LionBr is optimized for speed, offering a faster browsing experience compared to Chrome and other popular browsers.
 - **Tabbed Browsing**: Enjoy multi-tab support, allowing you to manage multiple websites in one window.
 - **Developer Tools**: LionBr provides dev tools for each tab, making it an ideal choice for web developers and debugging tasks.
+- **Undetected Adblocker**: LionBr features an undetected adblocker, enhancing your browsing experience by reducing intrusive ads.
+- **Theme Switch**: Customize your browsing experience with the built-in theme switcher, allowing you to change the browser's appearance to your liking.
 
 ## Installation
 
