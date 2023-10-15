@@ -1,4 +1,67 @@
-<link href="./icon.png" rel="shortcut icon">
-<title>New Tab</title>
-<h1>This is a blank new tab</h1>
-<a href="https://discord.gg/coding" target="_blank">Open Our Support Server</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            transition: background-color 0.5s;
+            background-color: #fff; /* Default background color */
+            color: #000; /* Default text color */
+        }
+
+        #search-container {
+            margin: 10% auto;
+            max-width: 400px;
+        }
+
+        #logo {
+            margin-bottom: 20px;
+        }
+
+        #search-bar {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            background-color: #f5f5f5; /* Default input background color */
+            color: #333; /* Default input text color */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: #fff;
+            }
+
+            #search-bar {
+                background-color: #555; /* Dark mode input background color */
+                color: #fff; /* Dark mode input text color */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="search-container">
+        <img id="logo" src="https://duckduckgo.com/assets/logo_homepage.normal.v108.svg" alt="DuckDuckGo Logo" width="200">
+        <input type="text" id="search-bar" placeholder="Search DuckDuckGo or type a web address" onkeyup="checkSubmit(event)">
+    </div>
+
+    <script>
+        function checkSubmit(event) {
+            if (event.key === "Enter") {
+                performSearch();
+            }
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById("search-bar").value;
+            if (searchTerm) {
+                window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(searchTerm)}`;
+            }
+        }
+    </script>
+</body>
+</html>
