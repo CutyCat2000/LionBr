@@ -5,6 +5,7 @@ var _ = require('lodash');
 const { ElectronBlocker, requestBlocker } = require('@cliqz/adblocker-electron'); // Import ElectronBlocker and requestBlocker
 const fetch = require('cross-fetch');
 const remoteMain = require('@electron/remote/main');
+const axios = require('axios');
 remoteMain.initialize();
 const blocker = ElectronBlocker.fromPrebuiltAdsOnly(fetch).then((blocker) => {
     blocker.enableBlockingInSession(session.defaultSession);
@@ -16,18 +17,28 @@ function setTheme(theme) {
       nativeTheme.themeSource = 'light';
   }
 }
-let currentTheme = 'light';
+let currentTheme;
+let searchEngine = 'duckduckgo';
+let updateCheckInterval;
+const localVersionPath = path.join(__dirname, 'current_version.txt');
+const localVersion = fs.readFileSync(localVersionPath, 'utf-8');
 
 app.on("ready", () => {
     try {
-        const configPath = path.join(__dirname, 'config.json');
+        const configPath = path.join(app.getPath('userData'), 'config.json');
         const configData = fs.readFileSync(configPath, 'utf-8');
         const config = JSON.parse(configData);
         if (config.theme) {
             currentTheme = config.theme;
+            nativeTheme.themeSource = config.theme;
+        }
+        if (config.search) {
+            searchEngine = config.search
         }
     } catch (err) {
         console.error('Error reading config.json:', err);
+        currentTheme = 'light';
+        nativeTheme.themeSource = 'light';
     }
     app.setName("LionBr")
     win = new BrowserWindow({
@@ -45,6 +56,18 @@ app.on("ready", () => {
         icon: path.join(__dirname, 'icon.png'),
         allowpopups: true,        
     });
+    async function checkForUpdate() {
+        try {
+            const remoteVersionResponse = await axios.get('https://raw.githubusercontent.com/CutyCat2000/ShareBot-/main/current_version.txt');
+            const remoteVersion = remoteVersionResponse.data;
+    
+            if (remoteVersion !== localVersion) {
+                win.webContents.send('alert-update'), '';
+            }
+        } catch (error) {
+            console.error('Error checking for update:', error);
+        }
+    }
     remoteMain.enable(win.webContents)
     win.loadFile("./3f134660c47e4214ab455070033efee3-lionBrWebView.html");
     win.show();
@@ -72,13 +95,6 @@ app.on("ready", () => {
           });
         }
       });
-      
-    app.commandLine.appendSwitch('no-verify-widevine-cdm')
-    const isOffline = false
-    const widevineDir = app.getPath('userData')
-    app.on('widevine-ready', () => {
-      createWindow()
-    })
 
     win.webContents.on("did-attach-webview", (_, contents) => {
       contents.setWindowOpenHandler((details) => {
@@ -90,12 +106,26 @@ app.on("ready", () => {
     ipcMain.on('change-theme', (event, theme) => {
         currentTheme = theme;
         setTheme(theme);
-        const configPath = path.join('config.json');
-        const config = { theme };
+        const configPath = path.join(app.getPath('userData'), 'config.json');
+        const config = { theme: theme };
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         console.log(`Theme changed to ${theme}`);
+    });
+    ipcMain.on('change-search', (event, engine) => {
+        searchEngine = engine;
+        const configPath = path.join(app.getPath('userData'), 'config.json');
+        const config = { search: engine };
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        win.webContents.send('search-changed', engine);
+        console.log(`Search engine changed to ${searchEngine}`);
+    });
+    ipcMain.handle('get-search', (event) => {
+        console.log(searchEngine)
+        return searchEngine;
     });
     ipcMain.on('minimize-window', () => {
         win.minimize();
     });
+    checkForUpdate();
+    updateCheckInterval = setInterval(checkForUpdate, 5000);
 });

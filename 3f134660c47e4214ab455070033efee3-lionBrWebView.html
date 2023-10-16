@@ -127,6 +127,17 @@
                 background: #666;
             }
         }
+        .alert-update {
+            position: absolute;
+            top:3px;
+            left: 7px;
+            display: none;
+            z-index: 999;
+        }
+        .alert-update-link {
+            display: none;
+            position: relative;
+        }
     </style>
     <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
@@ -134,43 +145,65 @@
 <body>
     <ul class="nav nav-tabs tab-group">
         <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#tabView1" id="tab1" onclick="showTab('tabView1','tab1')"><span id="title1">New Tab</span> <button class="close-tab" onclick="closeTab(1)">✖</button></a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link" style="font-size: 15px;" id="newTab" onclick="addTab()">+</a>
         </li>
     </ul>
     <button class="appCloseBtn" onmousedown="window.top.close()">✖</button>
     <button class="appMinimizeBtn" onclick="window.api.minimize()">➖</button>
     <div class="tab-content">
-        <div id="tabView1" class="tab-pane active">
-            <div class="input-group">
-                <button class="form-control" style="max-width: 30px;" onclick="goBackInTab('1')"><i class="bi bi-arrow-left"></i></button>
-                <button class="form-control" style="max-width: 30px;" onclick="goForwardInTab('1')"><i class="bi bi-arrow-right"></i></button>
-                <button class="form-control" style="max-width: 30px;" onclick="reloadTab('1')"><i class="bi bi-arrow-clockwise"></i></button>
-                <input type="text" class="form-control" id="urlInput" placeholder="Enter URL">
-                <div class = "dropdown">
-                    <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html')">New Tab</a>
-                        <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html')">Settings</a>
-                        <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
-                        <a class="dropdown-item" onclick="openDevTools(1)">Developer Tools</a>
-                        <a class="dropdown-item" onclick="window.top.close()">Exit</a>
-                    </div>
-                </div>
-            </div>
-            <div id="loading1" class="loading">
-                <div class="bar"></div>
-            </div>                     
-            <webview id="webview1" src="3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html" allowpopups preload="./3f134660c47e4214ab455070033efee3-additional.js"></webview>
-        </div>
     </div>
 
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-          window.api.handle(
+        (async () => {
+            defaultSearchEngine = await window.api.getSearchEngine();
+            console.log(defaultSearchEngine);
+            // duckduckgo, google, yahoo, you, bing
+            if (defaultSearchEngine == 'duckduckgo') {
+                blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-duckduckgo.html';
+                search_url = 'https://duckduckgo.com?q=';
+            } else if(defaultSearchEngine == 'google') {
+                blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-google.html';
+                search_url = 'https://www.google.com/search?q=';
+            } else if (defaultSearchEngine == 'yahoo') {
+                blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-yahoo.html';
+                search_url = 'https://search.yahoo.com/search?p=';
+            } else if (defaultSearchEngine == 'you') {
+                blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-you.html';
+                search_url = 'https://you.com/search?q=';
+            } else {
+                blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-bing.html';
+                search_url = 'https://www.bing.com/search?q=';
+            }
+            addTab();
+        })();
+        window.api.handle(
+            "search-changed",
+            (event, defaultSearchEngine) =>
+            function (event, defaultSearchEngine) {
+                console.log(defaultSearchEngine);
+                // duckduckgo, google, yahoo, you, bing
+                if (defaultSearchEngine == 'duckduckgo') {
+                    blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-duckduckgo.html';
+                    search_url = 'https://duckduckgo.com?q=';
+                } else if(defaultSearchEngine == 'google') {
+                    blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-google.html';
+                    search_url = 'https://www.google.com/search?q=';
+                } else if (defaultSearchEngine == 'yahoo') {
+                    blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-yahoo.html';
+                    search_url = 'https://search.yahoo.com/search?p=';
+                } else if (defaultSearchEngine == 'you') {
+                    blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-you.html';
+                    search_url = 'https://you.com/search?q=';
+                } else {
+                    blank_file = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage-bing.html';
+                    search_url = 'https://www.bing.com/search?q=';
+                }
+            },
+            event
+        );
+        window.api.handle(
             "open-url",
             (event, data) =>
             function (event, data) {
@@ -178,60 +211,26 @@
             },
             event
         );
-        // JavaScript to set the default URL for the webview
-        const webview = document.getElementById('webview1');
-        webview.addEventListener('did-stop-loading', (event) => {
-            document.getElementById('loading1').style.display = 'none';
-            title = webview.getTitle();
-            url = webview.getURL();
-            if (title.length > 15) {
-                title = title.substring(0, 15) + "..."
-            }
-            document.getElementById("title1").textContent = title;
-            if (!url.replace(/\s/g, '').includes('3f134660c47e4214ab455070033efee3')) {
-                document.getElementById("urlInput").value = url;
-            } else if (url.endsWith("/3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html")) {
-                document.getElementById(`urlInput`).value = "settings://"
-            } else if (url.includes('3f134660c47e4214ab455070033efee3-lionBrWebView.html')) {
-                webview.src="3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html"
-            } else {
-                document.getElementById("urlInput").value = "";
-            }
-        });
-        webview.addEventListener('did-start-loading', (event) => {
-            document.getElementById('loading1').style.display = 'block';
-        });
-
+        window.api.handle(
+            "alert-update",
+            (event, data) =>
+            function (event, data) {
+                allAlerts = document.getElementsByClassName("alert-update")
+                for (let i = 0; i < allAlerts.length; i++) {
+                    allAlerts[i].style.display = "block";
+                }
+                allAlerts = document.getElementsByClassName("alert-update-link")
+                for (let i = 0; i < allAlerts.length; i++) {
+                    allAlerts[i].style.display = "block";
+                }
+            },
+            event
+        );
         function isDomainOrLocalURL(url) {
             const domainPattern = /^([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}$/i;
             return domainPattern.test(url);
         }
 
-        // JavaScript to handle URL navigation
-        const urlInput = document.getElementById('urlInput');
-
-        // Add an event listener for the Enter key
-        urlInput.addEventListener('keyup', function(event) {
-            if (event.key === 'Enter') {
-                let enteredURL = urlInput.value; // Change const to let
-                const domainPattern = /^(http(s)?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
-
-                if (enteredURL.startsWith('settings://')) {
-                    webview.src = '3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html';
-                } else if (url.includes('3f134660c47e4214ab455070033efee3-lionBrWebView.html')) {
-                    webview.src = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html';
-                } else if (domainPattern.test(enteredURL)) {
-                    // Check if the URL starts with 'http://' or 'https://'
-                    if (!enteredURL.match(/^(http|https):\/\//i)) {
-                        // If not, add 'https://'
-                        enteredURL = 'https://' + enteredURL;
-                    }
-                    webview.src = enteredURL;
-                } else {
-                    webview.src = 'https://duckduckgo.com/?q=' + encodeURIComponent(enteredURL);
-                }
-            }
-        });
         window.addEventListener("keydown", function(event) {
             if (event.ctrlKey && event.keyCode === 82) {
                 event.preventDefault();
@@ -260,10 +259,13 @@
                         <button class="form-control" style="max-width: 30px;" onclick="reloadTab('${tabCount}')"><i class="bi bi-arrow-clockwise"></i></button>
                         <input type="text" class="form-control" id="urlInput${tabCount}" placeholder="Enter URL">
                         <div class = "dropdown">
-                            <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                            <div class="dropdown-menu">
+                            <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                                <span class="p-1 bg-danger rounded-circle alert-update"></span>
+                            </button>                            <div class="dropdown-menu">
                                 <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html')">New Tab</a>
                                 <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html')">Settings</a>
+                                <a class="dropdown-item alert-update-link" onclick="addTab('https://github.com/CutyCat2000/LionBr/releases')"><span class="p-1 bg-danger rounded-circle alert-update"></span>Install Update</a>
                                 <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
                                 <a class="dropdown-item" onclick="openDevTools(${tabCount})">Developer Tools</a>
                                 <a class="dropdown-item" onclick="window.top.close()">Exit</a>
@@ -273,7 +275,7 @@
                     <div id="loading${tabCount}" class="loading">
                         <div class="bar"></div>
                     </div>
-                    <webview id="webview${tabCount}" src="${urlToOpen || '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html'}" allowpopups preload='./3f134660c47e4214ab455070033efee3-additional.js'></webview>
+                    <webview id="webview${tabCount}" src="${urlToOpen || blank_file}" allowpopups preload='./3f134660c47e4214ab455070033efee3-additional.js'></webview>
                 `;
 
                 const newNavLinkSurrounder = document.createElement('li');
@@ -327,7 +329,7 @@
                             }
                             newWebview.src = enteredURL;
                         } else {
-                            newWebview.src = 'https://duckduckgo.com/?q=' + encodeURIComponent(enteredURL);
+                            newWebview.src = search_url + encodeURIComponent(enteredURL);
                         }
                     }
                 });
@@ -343,11 +345,6 @@
 
             tabContent.remove();
             tabNavLink.remove();
-            if (tabCount > 1) {
-                tabCount--;
-                // Show the last tab when closing the current tab
-                showTab(`tabView${tabCount}`, `tab${tabCount}`);
-            }
         }
 
         // Function to show a specific tab
@@ -379,7 +376,6 @@
         // Initialize tab switching for the first tab
         showTab('tabView1', 'tab1');
         function goBackInTab(tabNum) {
-            console.log(tabNum);
             const webview = document.getElementById(`webview${tabNum}`);
             if (webview.canGoBack()) {
                 webview.goBack();
@@ -387,7 +383,6 @@
         }
 
         function goForwardInTab(tabNum) {
-            console.log(tabNum);
             const webview = document.getElementById(`webview${tabNum}`);
             if (webview.canGoForward()) {
                 webview.goForward();
@@ -395,7 +390,6 @@
         }
 
         function reloadTab(tabNum) {
-            console.log(tabNum);
             const webview = document.getElementById(`webview${tabNum}`);
             webview.reload();
         }

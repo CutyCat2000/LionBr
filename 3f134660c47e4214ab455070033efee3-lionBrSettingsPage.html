@@ -67,12 +67,21 @@
         <option value="light">Light</option>
         <option value="dark">Dark</option>
     </select>
+    <label for="engine-toggle">Search Engine:</label>
+    <select id="engine-toggle">
+        <option value="duckduckgo">DuckDuckGo</option>
+        <option value="google">Google</option>
+        <option value="bing">Bing</option>
+        <option value="yahoo">Yahoo</option>
+        <option value="you">You</option>
+    </select>
     
     <button id="save-button">Save Settings</button>
     
     <script>
         // JavaScript code remains the same
         const themeToggle = document.getElementById('theme-toggle');
+        const engineToggle = document.getElementById('engine-toggle');
         const saveButton = document.getElementById('save-button');
         
         // Check if the system's color scheme preference is dark
@@ -81,14 +90,19 @@
         } else {
             themeToggle.value = 'light';
         }
+        console.log(window.api.getSearchEngine());
+        (async () => {
+            engineToggle.value = await window.api.getSearchEngine();
+        })();
+        
     
         // Event listener for the "Save Settings" button
         saveButton.addEventListener('click', () => {
-            // Get the selected theme from the dropdown
             const selectedTheme = themeToggle.value;
-    
-            // Use the custom API to change the theme in the main process
+            const selectedEngine = engineToggle.value;    
+
             window.api.changeTheme(selectedTheme);
+            window.api.changeSearchEngine(selectedEngine);
         });
     </script>    
 </body>

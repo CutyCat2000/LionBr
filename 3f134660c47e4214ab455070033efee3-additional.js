@@ -8,6 +8,12 @@ contextBridge.exposeInMainWorld('api', {
     changeTheme: (theme) => {
       ipcRenderer.send('change-theme', theme);
     },
+    changeSearchEngine: (engine) => {
+        ipcRenderer.send('change-search', engine);
+    },
+    getSearchEngine: async () => {
+        return await ipcRenderer.invoke('get-search');
+    },
     minimize: () => {
         ipcRenderer.send('minimize-window');
     },
