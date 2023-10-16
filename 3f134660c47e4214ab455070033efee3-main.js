@@ -51,8 +51,9 @@ app.on("ready", () => {
     });
     async function checkForUpdate() {
         try {
-            const remoteVersionResponse = await axios.get('https://raw.githubusercontent.com/CutyCat2000/ShareBot-/main/current_version.txt');
+            const remoteVersionResponse = await axios.get('https://raw.githubusercontent.com/CutyCat2000/LionBr/main/current_version.txt');
             const remoteVersion = remoteVersionResponse.data;
+            console.log(remoteVersion);
     
             if (remoteVersion !== localVersion) {
                 win.webContents.send('alert-update'), '';
