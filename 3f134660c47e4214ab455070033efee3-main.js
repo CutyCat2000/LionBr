@@ -22,24 +22,17 @@ let searchEngine = 'duckduckgo';
 let updateCheckInterval;
 const localVersionPath = path.join(__dirname, 'current_version.txt');
 const localVersion = fs.readFileSync(localVersionPath, 'utf-8');
-
+const configPath = path.join(app.getPath('userData'), 'config.json');
+const configData = fs.readFileSync(configPath, 'utf-8');
+const config = JSON.parse(configData);
+if (config.theme) {
+    currentTheme = config.theme;
+    nativeTheme.themeSource = config.theme;
+}
+if (config.search) {
+    searchEngine = config.search
+}
 app.on("ready", () => {
-    try {
-        const configPath = path.join(app.getPath('userData'), 'config.json');
-        const configData = fs.readFileSync(configPath, 'utf-8');
-        const config = JSON.parse(configData);
-        if (config.theme) {
-            currentTheme = config.theme;
-            nativeTheme.themeSource = config.theme;
-        }
-        if (config.search) {
-            searchEngine = config.search
-        }
-    } catch (err) {
-        console.error('Error reading config.json:', err);
-        currentTheme = 'light';
-        nativeTheme.themeSource = 'light';
-    }
     app.setName("LionBr")
     win = new BrowserWindow({
         minWidth: 600,
@@ -107,14 +100,18 @@ app.on("ready", () => {
         currentTheme = theme;
         setTheme(theme);
         const configPath = path.join(app.getPath('userData'), 'config.json');
-        const config = { theme: theme };
+        const configData = fs.readFileSync(configPath, 'utf-8');
+        const config = JSON.parse(configData);
+        config.theme = theme;
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         console.log(`Theme changed to ${theme}`);
     });
     ipcMain.on('change-search', (event, engine) => {
         searchEngine = engine;
         const configPath = path.join(app.getPath('userData'), 'config.json');
-        const config = { search: engine };
+        const configData = fs.readFileSync(configPath, 'utf-8');
+        const config = JSON.parse(configData);
+        config.search = engine;
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         win.webContents.send('search-changed', engine);
         console.log(`Search engine changed to ${searchEngine}`);
