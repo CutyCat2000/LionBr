@@ -109,8 +109,6 @@ app.on("ready", () => {
         currentTheme = theme;
         setTheme(theme);
         const configPath = path.join(app.getPath('userData'), 'config.json');
-        const configData = fs.readFileSync(configPath, 'utf-8');
-        const config = JSON.parse(configData);
         config.theme = theme;
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         console.log(`Theme changed to ${theme}`);
@@ -118,8 +116,6 @@ app.on("ready", () => {
     ipcMain.on('change-search', (event, engine) => {
         searchEngine = engine;
         const configPath = path.join(app.getPath('userData'), 'config.json');
-        const configData = fs.readFileSync(configPath, 'utf-8');
-        const config = JSON.parse(configData);
         config.search = engine;
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         win.webContents.send('search-changed', engine);
