@@ -1,6 +1,6 @@
 {
   "name": "LionBr",
-  "version": "1.1.3",
+  "version": "1.1.3-fix",
   "description": "just an app",
   "main": "3f134660c47e4214ab455070033efee3-main.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "bootstrap-icons": "^1.11.1",
     "cross-fetch": "^4.0.0",
     "electron-accelerator": "^0.0.5",
+    "electron-packager": "^17.1.2",
     "fetch": "^1.1.0",
     "jquery": "^3.7.1",
     "lodash": "^4.17.21",

@@ -22,9 +22,17 @@ let searchEngine = 'duckduckgo';
 let updateCheckInterval;
 const localVersionPath = path.join(__dirname, 'current_version.txt');
 const localVersion = fs.readFileSync(localVersionPath, 'utf-8');
-const configPath = path.join(app.getPath('userData'), 'config.json');
-const configData = fs.readFileSync(configPath, 'utf-8');
-const config = JSON.parse(configData);
+const configPath = path.join(app.getPath('userData'), 'config.json')
+let config
+try {
+    const configData = fs.readFileSync(configPath, 'utf-8');
+    config = JSON.parse(configData);
+} catch(error) {
+    config  = {
+        theme: 'light',
+        search: 'duckduckgo'
+    }
+}
 if (config.theme) {
     currentTheme = config.theme;
     nativeTheme.themeSource = config.theme;

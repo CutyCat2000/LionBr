@@ -97,7 +97,6 @@
             background-color: #ccc;
             position: relative;
         }
-
         .bar {
             width: 100%;
             height: 100%;
@@ -315,7 +314,7 @@
                 });
                 newUrlInput.addEventListener('keyup', function(event) {
                     if (event.key === 'Enter') {
-                        const enteredURL = newUrlInput.value;
+                        let enteredURL = newUrlInput.value;
                         const domainPattern = /^(http(s)?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
                         if (enteredURL.startsWith('settings://')) {
                             newWebview.src = '3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html';
