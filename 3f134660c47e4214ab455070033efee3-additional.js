@@ -17,4 +17,14 @@ contextBridge.exposeInMainWorld('api', {
     minimize: () => {
         ipcRenderer.send('minimize-window');
     },
+    disableAdblocker: () => {
+        ipcRenderer.send('disable-adblocker');
+        document.getElementById('disableadblocker').style.display = 'none';
+        document.getElementById('enableadblocker').style.display = 'block';
+    },
+    enableAdblocker: () => {
+        ipcRenderer.send('enable-adblocker');
+        document.getElementById('disableadblocker').style.display = 'block';
+        document.getElementById('enableadblocker').style.display = 'none';
+    }
 })

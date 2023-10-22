@@ -7,7 +7,10 @@ const fetch = require('cross-fetch');
 const remoteMain = require('@electron/remote/main');
 const axios = require('axios');
 remoteMain.initialize();
-const blocker = ElectronBlocker.fromPrebuiltAdsOnly(fetch).then((blocker) => {
+let blocker;
+
+ElectronBlocker.fromPrebuiltAdsOnly(fetch).then((createdBlocker) => {
+    blocker = createdBlocker;
     blocker.enableBlockingInSession(session.defaultSession);
 });
 function setTheme(theme) {
@@ -50,7 +53,7 @@ app.on("ready", () => {
             nodeIntegration: true,
             enableRemoteModule: true,
             preload: path.join(__dirname, './3f134660c47e4214ab455070033efee3-additional.js'),
-            devTools: false,
+            //devTools: false,
         },
         titleBarStyle: "hidden",
         titleBarOverlay: false,
@@ -127,6 +130,12 @@ app.on("ready", () => {
     });
     ipcMain.on('minimize-window', () => {
         win.minimize();
+    });
+    ipcMain.on('disable-adblocker', () => {
+        blocker.disableBlockingInSession(session.defaultSession);
+    });
+    ipcMain.on('enable-adblocker', () => {
+        blocker.enableBlockingInSession(session.defaultSession);
     });
     checkForUpdate();
     updateCheckInterval = setInterval(checkForUpdate, 5000);

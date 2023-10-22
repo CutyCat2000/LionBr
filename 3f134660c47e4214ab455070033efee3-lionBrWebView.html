@@ -264,6 +264,8 @@
                             </button>                            <div class="dropdown-menu">
                                 <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html')">New Tab</a>
                                 <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html')">Settings</a>
+                                <a class="dropdown-item" onclick="window.api.enableAdblocker()" id="enableadblocker" style="display: none;">Enable Adblocker</a>
+                                <a class="dropdown-item" onclick="window.api.disableAdblocker()" id="disableadblocker">Disable Adblocker</a>
                                 <a class="dropdown-item alert-update-link" onclick="addTab('https://github.com/CutyCat2000/LionBr/releases')"><span class="p-1 bg-danger rounded-circle alert-update"></span>Install Update</a>
                                 <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
                                 <a class="dropdown-item" onclick="openDevTools(${tabCount})">Developer Tools</a>
