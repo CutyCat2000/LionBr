@@ -5,6 +5,8 @@
         body {
             margin: 0;
             overflow: hidden;
+            margin: 0;
+
         }
 
         .tab-group {
@@ -23,13 +25,13 @@
         .tab-content {
             position: absolute;
             top: 33px;
-            height: calc(100vh - 66px);
+            height: calc(100vh - 99px);
             width: 100vw;
         }
         webview {
             position: absolute;
             width: 100vw;
-            height: calc(100vh - 63px);
+            height: calc(100vh - 94px);
         }
         input, button {
             height: 30px;
@@ -137,11 +139,15 @@
             display: none;
             position: relative;
         }
+        .bookmark {
+            color: #888!important;
+        }
     </style>
     <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 </head>
 <body>
+    <span id="adblockerEnabled" style="display: none;">true</span>
     <ul class="nav nav-tabs tab-group">
         <li class="nav-item">
             <a class="nav-link" style="font-size: 15px;" id="newTab" onclick="addTab()">+</a>
@@ -225,6 +231,31 @@
             },
             event
         );
+        window.api.handle(
+            "bookmarks-update",
+            (event, data) =>
+            function (event, data) {
+                let containers = document.getElementsByClassName('bookmark-container');
+                for (let i = 0; i < containers.length; i++) {
+                    let elms = containers[i].children;
+                    for (let x = 0; x < data.length; x++) {
+                        if (data[x].name == '' || data[x].url == '') {
+                            elms[x].style.display = 'none';
+                            continue;
+                        } else {
+                            elms[x].style.display = 'inline-block';
+                            elms[x].innerHTML = data[x].name;
+                            elms[x].onclick = () => {
+                                addTab(data[x].url);
+                            }
+                        }
+                    }
+                }
+            },
+            event
+        );
+
+            
         function isDomainOrLocalURL(url) {
             const domainPattern = /^([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}$/i;
             return domainPattern.test(url);
@@ -251,7 +282,7 @@
                 const newTabContent = document.createElement('div');
                 newTabContent.id = `tabView${tabCount}`;
                 newTabContent.classList.add('tab-pane');
-                newTabContent.innerHTML = `
+                let content = `
                     <div class="input-group">
                         <button class="form-control" style="max-width: 30px;" onclick="goBackInTab('${tabCount}')"><i class="bi bi-arrow-left"></i></button>
                         <button class="form-control" style="max-width: 30px;" onclick="goForwardInTab('${tabCount}')"><i class="bi bi-arrow-right"></i></button>
@@ -261,11 +292,19 @@
                             <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="bi bi-three-dots-vertical"></i>
                                 <span class="p-1 bg-danger rounded-circle alert-update"></span>
-                            </button>                            <div class="dropdown-menu">
+                            </button>
+                            <div class="dropdown-menu">
                                 <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html')">New Tab</a>
                                 <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html')">Settings</a>
-                                <a class="dropdown-item" onclick="window.api.enableAdblocker()" id="enableadblocker" style="display: none;">Enable Adblocker</a>
-                                <a class="dropdown-item" onclick="window.api.disableAdblocker()" id="disableadblocker">Disable Adblocker</a>
+                                <a class="dropdown-item" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrBookmarkSettingsPage.html')">Bookmarks</a>`
+                if (document.getElementById('adblockerEnabled').innerHTML == "true") {
+                    content += `<a class="dropdown-item disableadblocker" onclick="window.api.disableAdblocker()">Disable Adblocker</a>
+                    <a class="dropdown-item enableadblocker" onclick="window.api.enableAdblocker()" style="display: none;">Enable Adblocker</a>`;
+                } else {
+                    content += `<a class="dropdown-item enableadblocker" onclick="window.api.enableAdblocker()">Enable Adblocker</a>
+                    <a class="dropdown-item disableadblocker" onclick="window.api.disableAdblocker()" style="display: none;">Disable Adblocker</a>`;
+                }
+                content += `
                                 <a class="dropdown-item alert-update-link" onclick="addTab('https://github.com/CutyCat2000/LionBr/releases')"><span class="p-1 bg-danger rounded-circle alert-update"></span>Install Update</a>
                                 <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
                                 <a class="dropdown-item" onclick="openDevTools(${tabCount})">Developer Tools</a>
@@ -273,12 +312,18 @@
                             </div>
                         </div>
                     </div>
+                    <div class = "bookmark-container">
+                        <button class="btn bookmark" onclick="" style="display: none;"></button>
+                        <button class="btn bookmark" onclick="" style="display: none;"></button>
+                        <button class="btn bookmark" onclick="" style="display: none;"></button>
+                        <button class="btn bookmark" onclick="addTab('3f134660c47e4214ab455070033efee3-lionBrBookmarkSettingsPage.html')">+</button>
+                    </div>
                     <div id="loading${tabCount}" class="loading">
                         <div class="bar"></div>
                     </div>
                     <webview id="webview${tabCount}" src="${urlToOpen || blank_file}" allowpopups preload='./3f134660c47e4214ab455070033efee3-additional.js'></webview>
                 `;
-
+                newTabContent.innerHTML = content;
                 const newNavLinkSurrounder = document.createElement('li');
                 newNavLinkSurrounder.classList.add('nav-item');
                 newNavLinkSurrounder.innerHTML = `
@@ -307,6 +352,8 @@
                         document.getElementById(`urlInput${tabNum}`).value = url;
                     } else if (url.replace(' ','').endsWith("/3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html")) {
                         document.getElementById(`urlInput${tabNum}`).value = "settings://"
+                    } else if (url.replace(' ','').endsWith("/3f134660c47e4214ab455070033efee3-lionBrBookmarkSettingsPage.html")) {
+                        document.getElementById(`urlInput${tabNum}`).value = "settings://bookmarks"
                     } else {
                         document.getElementById(`urlInput${tabNum}`).value = "";
                     }
@@ -319,7 +366,11 @@
                         let enteredURL = newUrlInput.value;
                         const domainPattern = /^(http(s)?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
                         if (enteredURL.startsWith('settings://')) {
-                            newWebview.src = '3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html';
+                            if (enteredURL.endsWith('bookmarks')) {
+                                newWebview.src = '3f134660c47e4214ab455070033efee3-lionBrBookmarkSettingsPage.html';
+                            } else {
+                                newWebview.src = '3f134660c47e4214ab455070033efee3-lionBrSettingsPage.html';
+                            }
                         } else if (url.includes('3f134660c47e4214ab455070033efee3-lionBrWebView.html')) {
                             newWebview.src = '3f134660c47e4214ab455070033efee3-blankDefaultLionBrPage.html';
                         } else if (domainPattern.test(enteredURL)) {
@@ -334,9 +385,31 @@
                         }
                     }
                 });
+                (async () => {
+                    let bookmarks = await window.api.getBookmarks();
+                    console.log(bookmarks);
+                    let containers = document.getElementsByClassName('bookmark-container');
+                    for (let i = 0; i < containers.length; i++) {
+                        let elms = containers[i].children;
+                        for (let x = 0; x < bookmarks.length; x++) {
+                            if (bookmarks[x].name == '' || bookmarks[x].url == '') {
+                                elms[x].style.display = 'none';
+                                continue;
+                            } else {
+                                elms[x].style.display = 'inline-block';
+                                elms[x].innerHTML = bookmarks[x].name;
+                                elms[x].onclick = () => {
+                                    addTab(bookmarks[x].url);
+                                }
+                            }
+                        }
+                    }
+                })();
                 showTab(`tabView${tabCount}`, `tab${tabCount}`);
             }
         }
+
+
 
 
         // JavaScript to close a tab

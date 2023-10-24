@@ -48,6 +48,29 @@ if (config.search) {
 if (!config.autolaunch) {
     config.autoLaunch = 'false';
 }
+
+// bookmarks
+
+let bookmarks = [];
+try {
+    const bookmarksData = fs.readFileSync(path.join(app.getPath('userData'), 'bookmarks.json'), 'utf-8');
+    bookmarks = JSON.parse(bookmarksData);
+} catch(error) {
+    bookmarks = [
+        {
+            'name': '',
+            'url': '',
+        },
+        {
+            'name': '',
+            'url': '',
+        },
+        {
+            'name': '',
+            'url': '',
+        }
+    ];
+}
 app.on("ready", () => {
     let autoLaunch = new AutoLaunch({
         name: "LionBr",
@@ -173,6 +196,16 @@ app.on("ready", () => {
         return autoLaunch.isEnabled().then((isEnabled) => {
             return isEnabled? 'enabled' : 'disabled';
         });
+    });
+    ipcMain.handle('get-bookmarks', () => {
+        return bookmarks;
+    });
+    ipcMain.on('save-bookmarks', (event, data) => {
+        bookmarks = data;
+        const bookmarksPath = path.join(app.getPath('userData'), 'bookmarks.json');
+        fs.writeFileSync(bookmarksPath, JSON.stringify(bookmarks, null, 2));
+        win.webContents.send('bookmarks-update', bookmarks);
+        console.log(`Bookmarks saved`);
     });
     checkForUpdate();
     updateCheckInterval = setInterval(checkForUpdate, 5000);
