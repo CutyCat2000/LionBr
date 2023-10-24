@@ -6,6 +6,7 @@ const { ElectronBlocker, requestBlocker } = require('@cliqz/adblocker-electron')
 const fetch = require('cross-fetch');
 const remoteMain = require('@electron/remote/main');
 const axios = require('axios');
+const AutoLaunch = require('auto-launch');
 remoteMain.initialize();
 let blocker;
 
@@ -33,7 +34,8 @@ try {
 } catch(error) {
     config  = {
         theme: 'light',
-        search: 'duckduckgo'
+        search: 'duckduckgo',
+        autolaunch: 'false',
     }
 }
 if (config.theme) {
@@ -43,7 +45,22 @@ if (config.theme) {
 if (config.search) {
     searchEngine = config.search
 }
+if (!config.autolaunch) {
+    config.autoLaunch = 'false';
+}
 app.on("ready", () => {
+    let autoLaunch = new AutoLaunch({
+        name: "LionBr",
+        path: app.getPath('exe'),
+    });
+    autoLaunch.isEnabled().then((isEnabled) => {
+        if (!isEnabled && config.autolaunch == 'true') {
+            autoLaunch.enable();
+        }
+        else if (isEnabled && config.autolaunch == 'false') {
+            autoLaunch.disable();
+        }
+    });
     app.setName("LionBr")
     win = new BrowserWindow({
         minWidth: 600,
@@ -65,8 +82,9 @@ app.on("ready", () => {
             const remoteVersionResponse = await axios.get('https://raw.githubusercontent.com/CutyCat2000/LionBr/main/current_version.txt');
             const remoteVersion = remoteVersionResponse.data;
             console.log(remoteVersion);
+            console.log(localVersion);
     
-            if (remoteVersion !== localVersion) {
+            if (remoteVersion.toString().replace("\n","") !== localVersion.toString().replace("\n","")) {
                 win.webContents.send('alert-update'), '';
             }
         } catch (error) {
@@ -136,6 +154,25 @@ app.on("ready", () => {
     });
     ipcMain.on('enable-adblocker', () => {
         blocker.enableBlockingInSession(session.defaultSession);
+    });
+    ipcMain.on('enable-auto-launch', () => {
+        const configPath = path.join(app.getPath('userData'), 'config.json');
+        autoLaunch.enable();
+        config.autolaunch = 'true';
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        console.log(`Auto launch enabled`);
+    });
+    ipcMain.on('disable-auto-launch', () => {
+        const configPath = path.join(app.getPath('userData'), 'config.json');
+        autoLaunch.disable();
+        config.autolaunch = 'false';
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        console.log(`Auto launch disabled`);
+    });
+    ipcMain.handle('get-auto-launch', () => {
+        return autoLaunch.isEnabled().then((isEnabled) => {
+            return isEnabled? 'enabled' : 'disabled';
+        });
     });
     checkForUpdate();
     updateCheckInterval = setInterval(checkForUpdate, 5000);

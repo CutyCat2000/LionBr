@@ -75,6 +75,11 @@
         <option value="yahoo">Yahoo</option>
         <option value="you">You</option>
     </select>
+    <label for="auto-launch">Launch at startup:</label>
+    <select id="auto-launch">
+        <option value="enabled">Yes</option>
+        <option value="disabled">No</option>
+    </select>
     
     <button id="save-button">Save Settings</button>
     
@@ -82,6 +87,7 @@
         // JavaScript code remains the same
         const themeToggle = document.getElementById('theme-toggle');
         const engineToggle = document.getElementById('engine-toggle');
+        const autoLaunch = document.getElementById('auto-launch');
         const saveButton = document.getElementById('save-button');
         
         // Check if the system's color scheme preference is dark
@@ -93,6 +99,7 @@
         console.log(window.api.getSearchEngine());
         (async () => {
             engineToggle.value = await window.api.getSearchEngine();
+            autoLaunch.value = await window.api.getAutoLaunch();
         })();
         
     
@@ -103,6 +110,12 @@
 
             window.api.changeTheme(selectedTheme);
             window.api.changeSearchEngine(selectedEngine);
+            console.log(autoLaunch.value);
+            if (autoLaunch.value === 'enabled') {
+                window.api.enableAutoLaunch();
+            } else {
+                window.api.disableAutoLaunch();
+            }
         });
     </script>    
 </body>

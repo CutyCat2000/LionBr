@@ -26,5 +26,14 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.send('enable-adblocker');
         document.getElementById('disableadblocker').style.display = 'block';
         document.getElementById('enableadblocker').style.display = 'none';
+    },
+    enableAutoLaunch: () => {
+        ipcRenderer.send('enable-auto-launch');
+    },
+    disableAutoLaunch: () => {
+        ipcRenderer.send('disable-auto-launch');
+    },
+    getAutoLaunch: async () => {
+        return await ipcRenderer.invoke('get-auto-launch');
     }
 })
