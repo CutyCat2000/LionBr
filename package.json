@@ -1,8 +1,8 @@
 {
   "name": "LionBr",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "just an app",
-  "main": "3f134660c47e4214ab455070033efee3-main.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"

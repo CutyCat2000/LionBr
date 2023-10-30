@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f2f2f2;
+            transition: background-color 0.5s; /* Smooth transition for background color change */
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            background-color: #fff;
+            color: #000; /* Default text color */
+        }
+
+        select {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #0077cc;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0055aa;
+        }
+        #settings {
+            position: fixed;
+            left: 170px;
+            top: 0px;
+            bottom: 0px;
+            right: 0px;
+            width: calc(100vw - 340px);
+        }
+        #navigation {
+            position: fixed;
+            left: 0px;
+            top: 80px;
+            bottom: 0px;
+            right: 170px;
+            font-size: 12px;
+            width: 170px;
+            padding-left: 12px;
+        }
+        #navigation a {
+            color: #333;
+            text-decoration: none;
+        }
+        li {
+            list-style-type: none;
+            margin-left: -20px;
+            padding-top: 5px;
+        }
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: #fff;
+            }
+
+            select, button {
+                background-color: #444; /* Dark mode input background color */
+                color: #fff; /* Dark mode input text color */
+            }
+            #navigation a {
+                color: #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation">
+        <h3>Navigate</h3>
+    </div>
+    <div id="settings">
+        <h1>Settings</h1>
+        <label for="theme-toggle">Theme:</label>
+        <select id="theme-toggle">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+        </select>
+        <label for="engine-toggle">Search Engine:</label>
+        <select id="engine-toggle">
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="whoogle">Whoogle</option>
+            <option value="google">Google</option>
+            <option value="bing">Bing</option>
+            <option value="yahoo">Yahoo</option>
+            <option value="you">You</option>
+        </select>
+        <label for="auto-launch">Launch at startup:</label>
+        <select id="auto-launch">
+            <option value="enabled">Yes</option>
+            <option value="disabled">No</option>
+        </select>
+        
+        <button id="save-button">Save Settings</button>
+    </div>
+    
+    <script>
+        // JavaScript code remains the same
+        const themeToggle = document.getElementById('theme-toggle');
+        const engineToggle = document.getElementById('engine-toggle');
+        const autoLaunch = document.getElementById('auto-launch');
+        const saveButton = document.getElementById('save-button');
+        
+        // Check if the system's color scheme preference is dark
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            themeToggle.value = 'dark';
+        } else {
+            themeToggle.value = 'light';
+        }
+        console.log(window.api.getSearchEngine());
+        (async () => {
+            engineToggle.value = await window.api.getSearchEngine();
+            autoLaunch.value = await window.api.getAutoLaunch();
+        })();
+        
+    
+        // Event listener for the "Save Settings" button
+        saveButton.addEventListener('click', () => {
+            const selectedTheme = themeToggle.value;
+            const selectedEngine = engineToggle.value;    
+
+            window.api.changeTheme(selectedTheme);
+            window.api.changeSearchEngine(selectedEngine);
+            console.log(autoLaunch.value);
+            if (autoLaunch.value === 'enabled') {
+                window.api.enableAutoLaunch();
+            } else {
+                window.api.disableAutoLaunch();
+            }
+        });
+    </script>
+    <script src="./settings.js"></script>
+</body>
+</html>

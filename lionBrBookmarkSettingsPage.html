@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f2f2f2;
+            transition: background-color 0.5s; /* Smooth transition for background color change */
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        button, input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            background-color: #fff;
+            color: #000; /* Default text color */
+        }
+
+        input {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #0077cc;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0055aa;
+        }
+        #settings {
+            position: fixed;
+            height: 100vh;
+            left: 170px;
+            top: 0px;
+            bottom: 0px;
+            right: 0px;
+            width: calc(100vw - 340px);
+        }
+        #navigation {
+            position: fixed;
+            left: 0px;
+            top: 80px;
+            bottom: 0px;
+            right: 170px;
+            font-size: 12px;
+            width: 170px;
+            padding-left: 12px;
+        }
+        #navigation a {
+            color: #333;
+            text-decoration: none;
+        }
+        li {
+            list-style-type: none;
+            margin-left: -20px;
+            padding-top: 5px;
+        }
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: #fff;
+            }
+
+            button, input {
+                background-color: #444; /* Dark mode input background color */
+                color: #fff; /* Dark mode input text color */
+            }
+            #navigation a {
+                color: #ccc;
+            }
+        }
+        input {
+            width: calc(50% - 25px);
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation">
+        <h3>Navigate</h3>
+    </div>
+    <div id="settings">
+        <h1>Bookmarks</h1>
+        <!-- Able to add up to 5 bookmarks and edit them -->
+        <label for = "bookmark1-name">Bookmark 1:</label>
+        <input id = "bookmark1-name" type = "text" class="form-control dark w-50" placeholder = "Name">
+        <input id = "bookmark1-url" type = "text" class="form-control dark w-50" placeholder = "URL">
+        <label for = "bookmark2-name">Bookmark 2:</label>
+        <input id = "bookmark2-name" type = "text" class="form-control dark w-50" placeholder = "Name">
+        <input id = "bookmark2-url" type = "text" class="form-control dark w-50" placeholder = "URL">
+        <label for = "bookmark3-name">Bookmark 3:</label>
+        <input id = "bookmark3-name" type = "text" class="form-control dark w-50" placeholder = "Name">
+        <input id = "bookmark3-url" type = "text" class="form-control dark w-50" placeholder = "URL">
+        <button id = "save-button" class="w-50">Save Bookmarks</button>
+    </div>
+    
+    <script>
+        const bookmark1Name = document.getElementById('bookmark1-name');
+        const bookmark1Url = document.getElementById('bookmark1-url');
+        const bookmark2Name = document.getElementById('bookmark2-name');
+        const bookmark2Url = document.getElementById('bookmark2-url');
+        const bookmark3Name = document.getElementById('bookmark3-name');
+        const bookmark3Url = document.getElementById('bookmark3-url');
+        const saveButton = document.getElementById('save-button');
+        
+        (async () => {
+            const bookmarks = await window.api.getBookmarks();
+            console.log(bookmarks);
+            bookmark1Name.value = bookmarks[0].name;
+            bookmark1Url.value = bookmarks[0].url;
+            bookmark2Name.value = bookmarks[1].name;
+            bookmark2Url.value = bookmarks[1].url;
+            bookmark3Name.value = bookmarks[2].name;
+            bookmark3Url.value = bookmarks[2].url;
+        })();
+        
+    
+        // Event listener for the "Save Settings" button
+        saveButton.addEventListener('click', () => {
+            let newBookmarks = [];
+            newBookmarks.push({
+                name: bookmark1Name.value,
+                url: bookmark1Url.value
+            });
+            newBookmarks.push({
+                name: bookmark2Name.value,
+                url: bookmark2Url.value
+            });
+            newBookmarks.push({
+                name: bookmark3Name.value,
+                url: bookmark3Url.value
+            });
+            window.api.saveBookmarks(newBookmarks);
+
+        });
+    </script>
+    <script src="./settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            margin: 0;
+
+        }
+
+        .tab-group {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 33px;
+            -webkit-app-region: drag;
+            z-index: 999;
+        }
+        .nav-link {
+            -webkit-app-region: no-drag;
+            height: 33px;
+        }
+        .tab-content {
+            position: absolute;
+            top: 33px;
+            height: calc(100vh - 99px);
+            width: 100vw;
+        }
+        webview {
+            position: absolute;
+            width: 100vw;
+            height: calc(100vh - 94px);
+        }
+        input, button {
+            height: 30px;
+            border: none!important;
+            background: none;
+        }
+        .input-group {
+            width: 100vw;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+        }
+        .nav-link button {
+            color: red;
+            height: 0px;
+            width: 0px;
+            font-size: 14px;
+            padding-left: 12px;
+            cursor: pointer;
+        }
+        .appCloseBtn {
+            -webkit-app-region: no-drag;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            z-index: 999;
+            height: 32px;
+            width: 32px;
+        }
+        .appMinimizeBtn {
+            -webkit-app-region: no-drag;
+            position: fixed;
+            top: 0px;
+            right: 32px;
+            z-index: 999;
+            height: 32px;
+            width: 32px;
+        }
+        .appMinimizeBtn:hover {
+            background: #ccc;
+        }
+        .appCloseBtn:hover {
+            background: red;
+        }
+        input:focus, button:focus {
+            outline: none!important;
+            box-shadow: none!important;
+        }
+        #dotMenuDiv {
+            position: fixed;
+            top: 70px;
+            right: 3px;
+            border: 1px solid #333;
+        }
+        .dropdown-item {
+            font-size: 12px;
+        }
+        a {
+            cursor: pointer;
+        }
+        .loading {
+            width: 100vw;
+            height: 3px;
+            background-color: #ccc;
+            position: relative;
+        }
+        .bar {
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-size: 40px 40px;
+            animation: loading 2s linear infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 100% 0;
+            }
+            100% {
+                background-position: 0 0;
+            }
+        }
+        @media (prefers-color-scheme: dark) {
+            .nav-item, .nav-link.active, .dropdown-menu, .dropdown-item, .tab-group, .nav-tabs, body, .input-group, input, .form-control {
+                background-color: #333!important;
+                color: #fff!important;
+            }
+            .nav-link.active {
+                border-bottom: none!important;
+            }
+            .appMinimizeBtn:hover {
+                background: #666;
+            }
+        }
+        .alert-update {
+            position: absolute;
+            top:3px;
+            left: 7px;
+            display: none;
+            z-index: 999;
+        }
+        .alert-update-link {
+            display: none;
+            position: relative;
+        }
+        .bookmark {
+            color: #888!important;
+        }
+    </style>
+    <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <span id="adblockerEnabled" style="display: none;">true</span>
+    <ul class="nav nav-tabs tab-group">
+        <li class="nav-item">
+            <a class="nav-link" style="font-size: 15px;" id="newTab" onclick="addTab()">+</a>
+        </li>
+    </ul>
+    <button class="appCloseBtn" onmousedown="window.top.close()">✖</button>
+    <button class="appMinimizeBtn" onclick="window.api.minimize()">➖</button>
+    <div class="tab-content">
+    </div>
+
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (async () => {
+            defaultSearchEngine = await window.api.getSearchEngine();
+            console.log(defaultSearchEngine);
+            // duckduckgo, google, yahoo, you, bing
+            if (defaultSearchEngine == 'duckduckgo') {
+                blank_file = 'blankDefaultLionBrPage-duckduckgo.html';
+                search_url = 'https://duckduckgo.com?q=';
+            } else if(defaultSearchEngine == 'whoogle') {
+                blank_file = 'blankDefaultLionBrPage-whoogle.html';
+                search_url = 'https://farside.link/whoogle/search?q=';
+            } else if(defaultSearchEngine == 'google') {
+                blank_file = 'blankDefaultLionBrPage-google.html';
+                search_url = 'https://www.google.com/search?q=';
+            } else if (defaultSearchEngine == 'yahoo') {
+                blank_file = 'blankDefaultLionBrPage-yahoo.html';
+                search_url = 'https://search.yahoo.com/search?p=';
+            } else if (defaultSearchEngine == 'you') {
+                blank_file = 'blankDefaultLionBrPage-you.html';
+                search_url = 'https://you.com/search?q=';
+            } else {
+                blank_file = 'blankDefaultLionBrPage-bing.html';
+                search_url = 'https://www.bing.com/search?q=';
+            }
+            addTab();
+        })();
+        window.api.handle(
+            "search-changed",
+            (event, defaultSearchEngine) =>
+            function (event, defaultSearchEngine) {
+                console.log(defaultSearchEngine);
+                // duckduckgo, google, yahoo, you, bing
+                if (defaultSearchEngine == 'duckduckgo') {
+                    blank_file = 'blankDefaultLionBrPage-duckduckgo.html';
+                    search_url = 'https://duckduckgo.com?q=';
+                } else if(defaultSearchEngine == 'google') {
+                    blank_file = 'blankDefaultLionBrPage-google.html';
+                    search_url = 'https://www.google.com/search?q=';
+                } else if (defaultSearchEngine == 'yahoo') {
+                    blank_file = 'blankDefaultLionBrPage-yahoo.html';
+                    search_url = 'https://search.yahoo.com/search?p=';
+                } else if (defaultSearchEngine == 'you') {
+                    blank_file = 'blankDefaultLionBrPage-you.html';
+                    search_url = 'https://you.com/search?q=';
+                } else {
+                    blank_file = 'blankDefaultLionBrPage-bing.html';
+                    search_url = 'https://www.bing.com/search?q=';
+                }
+            },
+            event
+        );
+        window.api.handle(
+            "404",
+            (event, errorCode) => 
+            function (event, errorCode) {
+                alert(errorCode);
+            }
+        );
+        window.api.handle(
+            "open-url",
+            (event, data) =>
+            function (event, data) {
+                addTab(data);
+            },
+            event
+        );
+        window.api.handle(
+            "reloadPage",
+            (event, data) =>
+            function (event, data) {
+                const activeTabPane = document.querySelector(".tab-pane.active webview");
+                if (activeTabPane) {
+                    activeTabPane.reload();
+                }
+            },
+            event
+        );
+        window.api.handle(
+            "openDevtools",
+            (event, data) =>
+            function (event, data) {
+                const activeTabPane = document.querySelector(".tab-pane.active webview");
+                if (activeTabPane) {
+                    if (activeTabPane.isDevToolsOpened()) {
+                        activeTabPane.closeDevTools();
+                    }
+                    else {
+                        const allWebViews = document.getElementsByTagName('webview');
+                        for (const webview of allWebViews) {
+                            if (webview.isDevToolsOpened()) {
+                                webview.closeDevTools();
+                            }
+                        }
+                        activeTabPane.openDevTools({title: 'LionBr DevTools'});
+                    }
+                }
+            },
+            event
+        );
+        window.api.handle(
+            "alert-update",
+            (event, data) =>
+            function (event, data) {
+                allAlerts = document.getElementsByClassName("alert-update")
+                for (let i = 0; i < allAlerts.length; i++) {
+                    allAlerts[i].style.display = "block";
+                }
+                allAlerts = document.getElementsByClassName("alert-update-link")
+                for (let i = 0; i < allAlerts.length; i++) {
+                    allAlerts[i].style.display = "block";
+                }
+            },
+            event
+        );
+        window.api.handle(
+            "bookmarks-update",
+            (event, data) =>
+            function (event, data) {
+                let containers = document.getElementsByClassName('bookmark-container');
+                for (let i = 0; i < containers.length; i++) {
+                    let elms = containers[i].children;
+                    for (let x = 0; x < data.length; x++) {
+                        if (data[x].name == '' || data[x].url == '') {
+                            elms[x].style.display = 'none';
+                            continue;
+                        } else {
+                            elms[x].style.display = 'inline-block';
+                            elms[x].innerHTML = data[x].name;
+                            elms[x].onclick = () => {
+                                addTab(data[x].url);
+                            }
+                        }
+                    }
+                }
+            },
+            event
+        );
+
+            
+        function isDomainOrLocalURL(url) {
+            const domainPattern = /^([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}$/i;
+            return domainPattern.test(url);
+        }
+
+        
+
+        const newTabButton = document.getElementById('newTab');
+        let tabCount = 1;
+
+        function addTab(urlToOpen) {
+            if (true) {
+                tabCount++;
+                const newTabContent = document.createElement('div');
+                newTabContent.id = `tabView${tabCount}`;
+                newTabContent.classList.add('tab-pane');
+                let content = `
+                    <div class="input-group">
+                        <button class="form-control" style="max-width: 30px;" onclick="goBackInTab('${tabCount}')"><i class="bi bi-arrow-left"></i></button>
+                        <button class="form-control" style="max-width: 30px;" onclick="goForwardInTab('${tabCount}')"><i class="bi bi-arrow-right"></i></button>
+                        <button class="form-control" style="max-width: 30px;" onclick="reloadTab('${tabCount}')"><i class="bi bi-arrow-clockwise"></i></button>
+                        <input type="text" class="form-control" id="urlInput${tabCount}" placeholder="Enter URL">
+                        <div class = "dropdown">
+                            <button class="form-control menu" style="max-width: 30px;" class="dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                                <span class="p-1 bg-danger rounded-circle alert-update"></span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" onclick="addTab('blankDefaultLionBrPage.html')">New Tab</a>
+                                <a class="dropdown-item" onclick="addTab('lionBrSettingsPage.html')">Settings</a>
+                                <a class="dropdown-item" onclick="addTab('lionBrBookmarkSettingsPage.html')">Bookmarks</a>`
+                if (document.getElementById('adblockerEnabled').innerHTML == "true") {
+                    content += `<a class="dropdown-item disableadblocker" onclick="window.api.disableAdblocker()">Disable Adblocker</a>
+                    <a class="dropdown-item enableadblocker" onclick="window.api.enableAdblocker()" style="display: none;">Enable Adblocker</a>`;
+                } else {
+                    content += `<a class="dropdown-item enableadblocker" onclick="window.api.enableAdblocker()">Enable Adblocker</a>
+                    <a class="dropdown-item disableadblocker" onclick="window.api.disableAdblocker()" style="display: none;">Disable Adblocker</a>`;
+                }
+                content += `
+                                <a class="dropdown-item alert-update-link" onclick="addTab('https://github.com/CutyCat2000/LionBr/releases')"><span class="p-1 bg-danger rounded-circle alert-update"></span>Install Update</a>
+                                <a class="dropdown-item" onclick="addTab('https://discord.gg/7A4YZ2at6w')">Get Support</a>
+                                <a class="dropdown-item" onclick="openDevTools(${tabCount})">Developer Tools</a>
+                                <a class="dropdown-item" onclick="window.top.close()">Exit</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class = "bookmark-container">
+                        <button class="btn bookmark" onclick="" style="display: none;"></button>
+                        <button class="btn bookmark" onclick="" style="display: none;"></button>
+                        <button class="btn bookmark" onclick="" style="display: none;"></button>
+                        <button class="btn bookmark" onclick="addTab('lionBrBookmarkSettingsPage.html')">+</button>
+                    </div>
+                    <div id="loading${tabCount}" class="loading">
+                        <div class="bar"></div>
+                    </div>
+                    <webview id="webview${tabCount}" src="${urlToOpen || blank_file}" allowpopups preload='./additional.js'></webview>
+                `;
+                newTabContent.innerHTML = content;
+                const newNavLinkSurrounder = document.createElement('li');
+                newNavLinkSurrounder.classList.add('nav-item');
+                newNavLinkSurrounder.innerHTML = `
+                    <a class="nav-link" data-toggle="tab" href="#tabView${tabCount}" id="tab${tabCount}" onclick="showTab('tabView${tabCount}','tab${tabCount}')"><span id="title${tabCount}">New Tab</span> <button class="close-tab" onclick="closeTab(${tabCount})">✖</button></a>
+                `;
+
+                // Find the parent of the "+" button and insert the new navigation link before it
+                const tabGroup = document.querySelector('.tab-group');
+                tabGroup.insertBefore(newNavLinkSurrounder, newTabButton.parentNode);
+
+                document.querySelector('.tab-content').appendChild(newTabContent);
+
+                // Add event listeners for the new tab's navigation input
+                const newUrlInput = document.getElementById(`urlInput${tabCount}`);
+                const newWebview = document.getElementById(`webview${tabCount}`);
+                const tabNum = tabCount;
+                newWebview.addEventListener('did-stop-loading', (event) => {
+                    document.getElementById(`loading${tabNum}`).style.display = 'none';
+                    title = newWebview.getTitle();
+                    url =  newWebview.getURL()
+                    if (title.length > 15) {
+                        title = title.substring(0, 15) + "..."
+                    }
+                    document.getElementById(`title${tabNum}`).textContent = title;
+                    if (!url.replace(/\s/g, '').startsWith('file:///')) {
+                        document.getElementById(`urlInput${tabNum}`).value = url;
+                    } else if (url.replace(' ','').endsWith("/lionBrSettingsPage.html")) {
+                        document.getElementById(`urlInput${tabNum}`).value = "settings://"
+                    } else if (url.replace(' ','').endsWith("/lionBrBookmarkSettingsPage.html")) {
+                        document.getElementById(`urlInput${tabNum}`).value = "settings://bookmarks"
+                    } else if (!url.endsWith('404.html')){
+                        document.getElementById(`urlInput${tabNum}`).value = "";
+                    }
+                });
+                newWebview.addEventListener('did-start-loading', (event) => {
+                    document.getElementById(`loading${tabNum}`).style.display = 'block';
+                });
+                newWebview.addEventListener('did-fail-load', (event, errorCode, errorDescription) => {
+                    newWebview.src="./404.html";
+                });
+                newUrlInput.addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        let enteredURL = newUrlInput.value;
+                        const domainPattern = /^(http(s)?:\/\/)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
+                        if (enteredURL.startsWith('settings://')) {
+                            if (enteredURL.endsWith('bookmarks')) {
+                                newWebview.src = 'lionBrBookmarkSettingsPage.html';
+                            } else {
+                                newWebview.src = 'lionBrSettingsPage.html';
+                            }
+                        } else if (url.includes('lionBrWebView.html')) {
+                            newWebview.src = 'blankDefaultLionBrPage.html';
+                        } else if (domainPattern.test(enteredURL)) {
+                            // Check if the URL starts with 'http://' or 'https://'
+                            if (!enteredURL.match(/^(http|https):\/\//i)) {
+                                // If not, add 'https://'
+                                enteredURL = 'https://' + enteredURL;
+                            }
+                            newWebview.src = enteredURL;
+                        } else {
+                            newWebview.src = search_url + encodeURIComponent(enteredURL);
+                        }
+                    }
+                });
+                (async () => {
+                    let bookmarks = await window.api.getBookmarks();
+                    console.log(bookmarks);
+                    let containers = document.getElementsByClassName('bookmark-container');
+                    for (let i = 0; i < containers.length; i++) {
+                        let elms = containers[i].children;
+                        for (let x = 0; x < bookmarks.length; x++) {
+                            if (bookmarks[x].name == '' || bookmarks[x].url == '') {
+                                elms[x].style.display = 'none';
+                                continue;
+                            } else {
+                                elms[x].style.display = 'inline-block';
+                                elms[x].innerHTML = bookmarks[x].name;
+                                elms[x].onclick = () => {
+                                    addTab(bookmarks[x].url);
+                                }
+                            }
+                        }
+                    }
+                })();
+                showTab(`tabView${tabCount}`, `tab${tabCount}`);
+            }
+        }
+
+        // JavaScript to close a tab
+        function closeTab(tabNum) {
+            const tabContent = document.getElementById(`tabView${tabNum}`);
+            const tabNavLink = document.getElementById(`tab${tabNum}`);
+
+            tabContent.remove();
+            tabNavLink.remove();
+        }
+
+        // Function to show a specific tab
+        function showTab(tabId, tabId2) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-pane').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show the selected tab
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById(tabId2).classList.add('active');
+        }
+
+        function openDevTools(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            if (webview.isDevToolsOpened()) {
+                webview.closeDevTools();
+            }
+            else {
+                const allWebViews = document.getElementsByTagName('webview');
+                for (const webview of allWebViews) {
+                    if (webview.isDevToolsOpened()) {
+                        webview.closeDevTools();
+                    }
+                }
+                webview.openDevTools({title: 'LionBr DevTools'});
+            }
+        }
+
+        // Initialize tab switching for the first tab
+        showTab('tabView1', 'tab1');
+        function goBackInTab(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            if (webview.canGoBack()) {
+                webview.goBack();
+            }
+        }
+
+        function goForwardInTab(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            if (webview.canGoForward()) {
+                webview.goForward();
+            }
+        }
+
+        function reloadTab(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            webview.reload();
+        }
+        function goHome(tabNum) {
+            const webview = document.getElementById(`webview${tabNum}`);
+            webview.src='blankDefaultLionBrPage.html';
+        }
+    </script>
+</body>
+</html>
